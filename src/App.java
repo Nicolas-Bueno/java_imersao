@@ -18,7 +18,7 @@ public class App {
         System.out.println(body);
         
         //extrair só os dados
-        JsonParse parser = new JsonParse();
+        var parser = new JsonParse();
         List<Map<String, String>> listaDeFilmes = parser.parse(body);
 
         //exibir dados
