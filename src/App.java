@@ -1,7 +1,6 @@
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 import java.util.Map;
@@ -10,36 +9,48 @@ import java.util.Scanner;
 public class App {
     public static void main(String[] args) throws Exception {
 
-        // Fazer conexão HTTP e buscar os filmes
+        // Fazendo conexão HTTP e buscando os filmes
+        Conection conec = new Conection();
         Scanner scan = new Scanner(System.in);
-        System.out.println("Which one do you want ?");
-        System.out.println("Most popular TVs(1) \n Top 250 movies(2)");
-        int option = scan.nextInt();
-
         String url = "";
+        boolean flag = false;
+        do {
+            
+            System.out.println("Which one do you want ?");
+            System.out.println("Most popular TVs (1) \nTop 250 movies (2)");
+            int option = scan.nextInt();
 
-        
-        if(option == 1){
-            url = "https://imdb-api.com/en/API/MostPopularTVs/k_s0xlqz72";
-        }else{
-            url = "https://imdb-api.com/en/API/Top250Movies/k_s0xlqz72";
-        }
+            switch (option) {
+                case 1: {
+                    url = "https://imdb-api.com/en/API/MostPopularTVs/k_s0xlqz72";
+                    conec.setUrl(url);
+                    flag = true;
+                    break;
+                }
+                case 2: {
+                    url = "https://imdb-api.com/en/API/Top250Movies/k_s0xlqz72";
+                    conec.setUrl(url);
+                    flag = true;
+                    break;
+                }
+                default:
+                    System.out.println("Try again!");
+                    break;
+            }
+      } while (flag == false);  
 
+        conec.setAddress(URI.create(url));
+        conec.setClient(HttpClient.newHttpClient());
+        conec.setRequest(HttpRequest.newBuilder(conec.getAddress()).GET().build());
+        conec.setResponse(conec.getClient().send(conec.getRequest(), BodyHandlers.ofString()));
+        conec.setBody(conec.getResponse().body());
         
 
-        
-        URI address = URI.create(url);
-        var client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder(address).GET().build();
-        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
-        String body = response.body();
-        //System.out.println(body);
-        
-        //extrair só os dados
+        //extraindo os dados
         var parser = new JsonParse();
-        List<Map<String, String>> listaDeFilmes = parser.parse(body);
+        List<Map<String, String>> listaDeFilmes = parser.parse(conec.getBody());
 
-        //exibir dados
+        //exibindo dados
         System.out.println("\u001b[31m ====================================================================================== ");
         for (Map<String,String> filme : listaDeFilmes) {
 
@@ -48,6 +59,7 @@ public class App {
             System.out.println("\u001b[31m \u001b[44m Classification: " + filme.get("imDbRating") + " \u001b[m ");
             System.out.println(" \u001b[31m ====================================================================================== ");
         }
+        scan.close();
     }
 }
 
